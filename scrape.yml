@@ -1,0 +1,31 @@
+name: Daily Real Estate Scraper
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Runs every day at 9am UTC
+  workflow_dispatch:       # Lets you also run it manually from GitHub
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python real_estate_scraper.py
+
+      - name: Send data to Google Sheets
+        run: |
+          curl -L -X POST "${{ secrets.SHEET_WEBHOOK_URL }}" \
+            -H "Content-Type: text/plain" \
+            --data-binary @real_estate_data.csv
